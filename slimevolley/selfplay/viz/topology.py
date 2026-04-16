@@ -124,20 +124,6 @@ def render_genome_topology_frame(genome, generation=None, benchmark_score=None, 
             zorder=1,
         )
 
-        xm = (x1 + x2) / 2.0
-        ym = (y1 + y2) / 2.0
-        ax.text(
-            xm,
-            ym,
-            f"w={conn.weight:.2f}",
-            fontsize=6.5,
-            color="#444444",
-            ha="center",
-            va="center",
-            bbox=dict(boxstyle="round,pad=0.14", facecolor="white", edgecolor="none", alpha=0.75),
-            zorder=2,
-        )
-
     node_style = {
         "input": dict(color="#2d6cdf", size=540),
         "hidden": dict(color="#f4b400", size=600),
