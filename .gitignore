@@ -52,6 +52,11 @@ xor/output/output_*/
 __pycache__/
 *.py[cod]
 
+<<<<<<< HEAD
 # Python cache
 __pycache__/
 *.py[cod]
+=======
+# sbatch file
+.sbatch
+>>>>>>> 66197fd (Addes sbatch file)
