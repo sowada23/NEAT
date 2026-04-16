@@ -79,7 +79,7 @@ def _run_match_batch(
     )
     final_carry, _ = jax.lax.scan(body_fn, initial, xs=None, length=max_steps)
     _, _, _, rewards, steps = final_carry
-    return np.asarray(rewards), np.asarray(steps)
+    return rewards, steps
 
 
 _run_match_batch_jit = jax.jit(_run_match_batch, static_argnames=("max_steps",))
@@ -111,6 +111,8 @@ def evaluate_selfplay_population_gpu(
             seed_base=seed_base + batch_idx,
             max_steps=max_steps,
         )
+        rewards = np.asarray(rewards)
+        steps = np.asarray(steps)
         for local_idx, (right_idx, left_idx) in enumerate(batch):
             reward = float(rewards[local_idx])
             step_count = float(steps[local_idx])
