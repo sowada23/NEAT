@@ -14,25 +14,17 @@ def save_accuracy_svg(history: dict[str, np.ndarray], out_dir):
     generations = history["generation"]
     best_accuracy = history["best_accuracy"]
     mean_accuracy = history["mean_accuracy"]
-    best_fitness = history["best_fitness"]
 
     plt.figure(figsize=(10, 5.8))
     plt.plot(generations, best_accuracy, color="#111111", linewidth=1.5, label="Best Accuracy")
     plt.plot(generations, mean_accuracy, color="#6c757d", linewidth=1.2, label="Mean Accuracy")
-    plt.axhline(1.0, color="#2f9e44", linestyle="--", linewidth=1.0, alpha=0.8)
+    plt.axhline(1.0, color="#2f9e44", linestyle="--", linewidth=1.0, alpha=0.8, label="Solved")
     plt.xlabel("Generation")
     plt.ylabel("XOR Accuracy")
     plt.ylim(-0.02, 1.05)
     plt.grid(True, alpha=0.35)
-
-    ax2 = plt.gca().twinx()
-    ax2.plot(generations, best_fitness, color="#f08c00", linewidth=1.0, alpha=0.85, label="Best Fitness")
-    ax2.set_ylabel("Best Fitness")
-
-    lines = plt.gca().lines + ax2.lines
-    labels = [line.get_label() for line in lines]
-    plt.legend(lines, labels, loc="lower right")
-    plt.title("NEAT XOR Progress")
+    plt.title("NEAT XOR Accuracy")
+    plt.legend(loc="lower right")
     plt.tight_layout()
     plt.savefig(out_path, format="svg")
     plt.close()

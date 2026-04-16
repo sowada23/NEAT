@@ -7,8 +7,10 @@ import random
 import numpy as np
 
 from neat import NEATConfig, Population
+from xor.accuracy import save_accuracy_svg
+from xor.fitness import save_fitness_svg
+from xor.mse import save_mse_svg
 from xor.output_utils import XOR_DIR, build_output_dir
-from xor.plot import save_accuracy_svg
 from xor.task import XOR_INPUTS, XOR_TARGETS, evaluate_genome_xor, evaluate_population_xor
 from xor.topology import save_topology_gif
 
@@ -83,6 +85,7 @@ def main():
         "best_fitness": [],
         "mean_fitness": [],
         "best_mse": [],
+        "mean_mse": [],
     }
     topology_history = []
     best_ever = None
@@ -100,6 +103,7 @@ def main():
         history["best_fitness"].append(generation_metrics["best_fitness"][0])
         history["mean_fitness"].append(generation_metrics["mean_fitness"][0])
         history["best_mse"].append(generation_metrics["best_mse"][0])
+        history["mean_mse"].append(generation_metrics["mean_mse"][0])
         topology_history.append((generation, best.copy(), float(best_metrics["accuracy"])))
 
         score_tuple = (float(best_metrics["accuracy"]), -float(best_metrics["mse"]), float(best_metrics["fitness"]))
@@ -137,7 +141,9 @@ def main():
     best_metrics = evaluate_genome_xor(best_ever)
     _save_summary(best_ever, out_dir, best_ever_generation, best_metrics)
 
-    svg_path = save_accuracy_svg(history_np, out_dir)
+    accuracy_svg_path = save_accuracy_svg(history_np, out_dir)
+    fitness_svg_path = save_fitness_svg(history_np, out_dir)
+    mse_svg_path = save_mse_svg(history_np, out_dir)
     topology_gif_path = save_topology_gif(
         topology_history,
         out_dir=out_dir,
@@ -149,7 +155,9 @@ def main():
     print(f"Output dir:   {out_dir}")
     print(f"Best genome:  {out_dir / 'best_xor_genome.pkl'}")
     print(f"History:      {out_dir / 'history.npz'}")
-    print(f"Accuracy SVG: {svg_path}")
+    print(f"Accuracy SVG: {accuracy_svg_path}")
+    print(f"Fitness SVG:  {fitness_svg_path}")
+    print(f"MSE SVG:      {mse_svg_path}")
     if topology_gif_path is not None:
         print(f"Topology GIF: {topology_gif_path}")
     else:

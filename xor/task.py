@@ -43,6 +43,7 @@ def evaluate_population_xor(population) -> dict[str, list[float]]:
     best_fitness = []
     mean_fitness = []
     best_mse = []
+    mean_mse = []
 
     for genome in population.members:
         metrics = evaluate_genome_xor(genome)
@@ -59,6 +60,7 @@ def evaluate_population_xor(population) -> dict[str, list[float]]:
     best_fitness.append(max(fitnesses) if fitnesses else 0.0)
     mean_fitness.append(float(np.mean(fitnesses)) if fitnesses else 0.0)
     best_mse.append(min(mses) if mses else 0.0)
+    mean_mse.append(float(np.mean(mses)) if mses else 0.0)
 
     return {
         "best_accuracy": best_accuracy,
@@ -66,4 +68,5 @@ def evaluate_population_xor(population) -> dict[str, list[float]]:
         "best_fitness": best_fitness,
         "mean_fitness": mean_fitness,
         "best_mse": best_mse,
+        "mean_mse": mean_mse,
     }
