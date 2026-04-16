@@ -8,6 +8,7 @@ import numpy as np
 
 from neat import NEATConfig, Population
 from slimevolley.gpu_selfplay.evaluation import evaluate_selfplay_population_gpu
+from slimevolley.selfplay.evaluation import evaluate_vs_baseline
 
 
 def build_output_dir(base: Path) -> Path:
@@ -28,6 +29,7 @@ def main():
     parser.add_argument("--generations", type=int, default=120)
     parser.add_argument("--population", type=int, default=100)
     parser.add_argument("--opponents-per-genome", type=int, default=4)
+    parser.add_argument("--benchmark-episodes", type=int, default=7)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--max-steps", type=int, default=3000)
     parser.add_argument("--batch-size", type=int, default=256)
@@ -81,6 +83,11 @@ def main():
 
         best = population.get_top_genome()
         best_score = max(selfplay_scores) if selfplay_scores else -1e9
+        benchmark_mean, benchmark_std, _benchmark_len = evaluate_vs_baseline(
+            genome=best,
+            episodes=args.benchmark_episodes,
+            seed_base=generation_seed_base + 7777,
+        )
         if best_score > best_ever_score:
             best_ever_score = best_score
             best_ever = best.copy()
@@ -92,6 +99,7 @@ def main():
             f"best_selfplay={best_score: .3f} | "
             f"mean_selfplay={float(np.mean(selfplay_scores)): .3f} | "
             f"mean_ep_len={float(np.mean(selfplay_lengths)): .1f} | "
+            f"baseline_benchmark={benchmark_mean: .3f} ± {benchmark_std: .3f} | "
             f"species={len(population.species)}"
         )
 
