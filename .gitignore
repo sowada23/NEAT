@@ -49,3 +49,5 @@ xor/output/output_*/
 *.gif
 *.svg
 *.npz
+__pycache__/
+*.py[cod]
