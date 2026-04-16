@@ -1,9 +1,0 @@
-best_generation: 72
-accuracy: 1.000000
-mse: 0.044414
-fitness: 3.822344
-xor_table:
-  sample_0: input=[0.0, 0.0] target=0.0 output=0.2338 prediction=0
-  sample_1: input=[0.0, 1.0] target=1.0 output=0.9535 prediction=1
-  sample_2: input=[1.0, 0.0] target=1.0 output=0.6844 prediction=1
-  sample_3: input=[1.0, 1.0] target=0.0 output=0.1457 prediction=0
