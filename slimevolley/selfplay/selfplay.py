@@ -82,6 +82,8 @@ def main():
 
     history_benchmark_mean = []
     history_benchmark_std = []
+    genome_history = []
+
 
     for generation in range(args.generations + 1):
         generation_seed_base = args.seed + generation * 10000
@@ -98,7 +100,7 @@ def main():
             episodes=args.benchmark_episodes,
             seed_base=generation_seed_base + 7777,
         )
-
+        genome_history.append((generation, best.copy(), benchmark_mean))
         history_benchmark_mean.append(benchmark_mean)
         history_benchmark_std.append(benchmark_std)
 
@@ -128,7 +130,7 @@ def main():
         fps=args.gif_fps,
     )
     topology_gif_path = save_topology_evolution_gif(
-        best_ever,
+        genome_history,
         out_dir=out_dir,
         fps=args.topology_gif_fps,
         sample_every=args.topology_sample_every,
