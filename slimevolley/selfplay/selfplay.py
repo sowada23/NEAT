@@ -126,10 +126,11 @@ def main():
             episodes=args.benchmark_episodes,
             seed_base=generation_seed_base + 7777,
         )
-        genome_history.append((generation, best.copy(), benchmark_mean))
+        current_tournament = (generation + 1) * tournaments_per_generation
+        genome_history.append((generation, current_tournament, best.copy(), benchmark_mean))
         history_benchmark_mean.append(benchmark_mean)
         history_benchmark_std.append(benchmark_std)
-        history_tournament.append((generation + 1) * tournaments_per_generation)
+        history_tournament.append(current_tournament)
 
         if benchmark_mean > best_ever_baseline_score:
             best_ever_baseline_score = benchmark_mean

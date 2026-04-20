@@ -83,7 +83,7 @@ def _node_positions(genome):
     return positions
 
 
-def render_genome_topology_frame(genome, generation=None, benchmark_score=None, figsize=(10, 6)):
+def render_genome_topology_frame(genome, generation=None, tournament=None, benchmark_score=None, figsize=(10, 6)):
     """Render one genome as an RGB frame showing nodes, activations, and edge weights."""
     positions = _node_positions(genome)
     nodes = sorted(genome.nodes.values(), key=lambda n: (n.type, n.id))
@@ -161,7 +161,9 @@ def render_genome_topology_frame(genome, generation=None, benchmark_score=None, 
         )
 
     title = "NEAT Topology Evolution"
-    if generation is not None:
+    if tournament is not None:
+        title += f" | Tournament {int(tournament):06d}"
+    elif generation is not None:
         title += f" | Generation {generation:03d}"
     if benchmark_score is not None:
         title += f" | baseline={benchmark_score:.3f}"
@@ -190,27 +192,35 @@ def render_genome_topology_frame(genome, generation=None, benchmark_score=None, 
 
 def save_topology_evolution_gif(genome_history, out_dir, fps=4, sample_every=1):
     """
-    Save a GIF of best-genome topology over generations.
+    Save a GIF showing only the final best-genome topology.
 
     genome_history is a list of tuples:
+        (generation, tournament, genome_copy, baseline_benchmark_score)
+    or:
         (generation, genome_copy, baseline_benchmark_score)
     """
     gif_path = out_dir / "topology_evolution.gif"
-    sampled = genome_history[:: max(1, sample_every)]
-    frames = []
+    if not genome_history:
+        return None
 
-    for generation, genome, benchmark_score in sampled:
-        frames.append(
-            render_genome_topology_frame(
-                genome,
-                generation=generation,
-                benchmark_score=benchmark_score,
-            )
-        )
+    last_entry = genome_history[-1]
+    generation = None
+    tournament = None
+    benchmark_score = None
 
-    if frames:
-        frames.extend([frames[-1]] * max(1, fps))
-        imageio.mimsave(gif_path, frames, fps=fps)
-        return gif_path
+    if len(last_entry) == 4:
+        generation, tournament, genome, benchmark_score = last_entry
+    elif len(last_entry) == 3:
+        generation, genome, benchmark_score = last_entry
+    else:
+        raise ValueError("Unexpected genome_history entry format.")
 
-    return None
+    final_frame = render_genome_topology_frame(
+        genome,
+        generation=generation,
+        tournament=tournament,
+        benchmark_score=benchmark_score,
+    )
+    frames = [final_frame] * max(1, fps + 1)
+    imageio.mimsave(gif_path, frames, fps=fps)
+    return gif_path
