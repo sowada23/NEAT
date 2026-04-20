@@ -83,8 +83,7 @@ def main():
     best_ever_baseline_score = -1e9
     default_generations = 120
 
-    history_selfplay_mean = []
-    history_selfplay_std = []
+    history_baseline_score = []
     history_tournament = []
     genome_history = []
 
@@ -120,18 +119,17 @@ def main():
             seed_base=generation_seed_base,
         )
         selfplay_mean = float(np.mean(selfplay_scores))
-        selfplay_std = float(np.std(selfplay_scores))
 
         best = population.get_top_genome()
-        benchmark_mean, benchmark_std, benchmark_len = evaluate_vs_baseline(
+        benchmark_mean, benchmark_std, benchmark_len, benchmark_scores = evaluate_vs_baseline(
             genome=best,
             episodes=args.benchmark_episodes,
             seed_base=generation_seed_base + 7777,
         )
+        plotted_baseline_score = float(benchmark_scores[0]) if benchmark_scores else benchmark_mean
         current_tournament = (generation + 1) * tournaments_per_generation
-        genome_history.append((generation, current_tournament, best.copy(), benchmark_mean))
-        history_selfplay_mean.append(selfplay_mean)
-        history_selfplay_std.append(selfplay_std)
+        genome_history.append((generation, current_tournament, best.copy(), plotted_baseline_score))
+        history_baseline_score.append(plotted_baseline_score)
         history_tournament.append(current_tournament)
 
         if benchmark_mean > best_ever_baseline_score:
@@ -146,6 +144,7 @@ def main():
             f"best_selfplay={max(selfplay_scores): .3f} | "
             f"mean_selfplay={selfplay_mean: .3f} | "
             f"mean_ep_len={float(np.mean(selfplay_lengths)): .1f} | "
+            f"baseline_score={plotted_baseline_score: .3f} | "
             f"baseline_benchmark={benchmark_mean: .3f} ± {benchmark_std: .3f} | "
             f"species={len(population.species)}"
         )
@@ -154,8 +153,7 @@ def main():
             population.reproduce()
 
     svg_path = save_baseline_benchmark_svg(
-        history_selfplay_mean,
-        history_selfplay_std,
+        history_baseline_score,
         out_dir,
         x_values=history_tournament,
         x_label="Tournament",

@@ -97,4 +97,5 @@ def evaluate_vs_baseline(genome, episodes, seed_base):
         float(np.mean(scores)),
         float(np.std(scores)),
         float(np.mean(lengths)),
+        scores,
     )
