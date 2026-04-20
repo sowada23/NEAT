@@ -17,6 +17,7 @@ In short:
 from __future__ import annotations
 
 import argparse
+import math
 import pickle
 
 import numpy as np
@@ -33,7 +34,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Train the local NEAT implementation on SlimeVolley using self-play only."
     )
-    parser.add_argument("--generations", type=int, default=120)
+    parser.add_argument("--generations", type=int, default=None)
+    parser.add_argument("--tournaments", type=int, default=None)
     parser.add_argument("--population", type=int, default=100)
     parser.add_argument("--opponents-per-genome", type=int, default=4)
     parser.add_argument("--benchmark-episodes", type=int, default=7)
@@ -79,20 +81,38 @@ def main():
     population = Population(config=config)
     best_ever = None
     best_ever_baseline_score = -1e9
+    default_generations = 120
 
     history_benchmark_mean = []
     history_benchmark_std = []
     history_tournament = []
     genome_history = []
 
+    effective_opponents_per_genome = min(
+        args.opponents_per_genome,
+        max(0, len(population.members) - 1),
+    )
+    tournaments_per_generation = len(population.members) * effective_opponents_per_genome
 
-    for generation in range(args.generations + 1):
+    if args.generations is not None and args.tournaments is not None:
+        parser.error("Use either --generations or --tournaments, not both.")
+
+    if args.tournaments is not None:
+        if args.tournaments < 1:
+            parser.error("--tournaments must be at least 1.")
+        if tournaments_per_generation < 1:
+            parser.error("Tournament mode requires at least 2 population members.")
+        total_generations = max(0, math.ceil(args.tournaments / tournaments_per_generation) - 1)
+    elif args.generations is not None:
+        if args.generations < 0:
+            parser.error("--generations must be at least 0.")
+        total_generations = args.generations
+    else:
+        total_generations = default_generations
+
+
+    for generation in range(total_generations + 1):
         generation_seed_base = args.seed + generation * 10000
-        effective_opponents_per_genome = min(
-            args.opponents_per_genome,
-            max(0, len(population.members) - 1),
-        )
-        tournaments_per_generation = len(population.members) * effective_opponents_per_genome
 
         selfplay_scores, selfplay_lengths = evaluate_selfplay_population(
             population=population,
@@ -119,6 +139,7 @@ def main():
 
         print(
             f"Generation {generation:03d} | "
+            f"tournament={history_tournament[-1]:06d} | "
             f"best_selfplay={max(selfplay_scores): .3f} | "
             f"mean_selfplay={float(np.mean(selfplay_scores)): .3f} | "
             f"mean_ep_len={float(np.mean(selfplay_lengths)): .1f} | "
@@ -126,7 +147,7 @@ def main():
             f"species={len(population.species)}"
         )
 
-        if generation < args.generations:
+        if generation < total_generations:
             population.reproduce()
 
     svg_path = save_baseline_benchmark_svg(
