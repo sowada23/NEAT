@@ -1,11 +1,9 @@
 
 """
-Create a benchmark score plot.
+Create a self-play score plot.
 
-This file makes a simple SVG graph showing how the best genome
-per generation performs against the baseline policy.
-
-The graph helps you see whether training is improving over time.
+This file makes a simple SVG graph showing how self-play scores
+change over the recorded training checkpoints.
 
 In short:
 - takes score history
@@ -33,8 +31,8 @@ def save_baseline_benchmark_svg(history_mean, history_std, out_dir, x_values=Non
     plt.plot(x, mean, color="black", linewidth=1.0)
     plt.axhline(0.0, color="#666666", linestyle="--", linewidth=1.0)
     plt.xlabel(x_label)
-    plt.ylabel("Average Score vs Baseline Policy")
-    plt.title("NEAT Self-Play: Champion Benchmark vs Baseline Policy")
+    plt.ylabel("Average Self-Play Score")
+    plt.title("NEAT Self-Play: Score Over Tournaments")
     plt.grid(True, alpha=0.35)
     plt.tight_layout()
     plt.savefig(out_path, format="svg")
