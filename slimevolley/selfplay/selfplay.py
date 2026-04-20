@@ -86,6 +86,7 @@ def main():
     history_baseline_score = []
     history_tournament = []
     genome_history = []
+    total_tournaments_played = 0
 
     effective_opponents_per_genome = min(
         args.opponents_per_genome,
@@ -112,11 +113,21 @@ def main():
 
     for generation in range(total_generations + 1):
         generation_seed_base = args.seed + generation * 10000
+        tournaments_remaining = None
+        if args.tournaments is not None:
+            tournaments_remaining = max(0, args.tournaments - total_tournaments_played)
+            if tournaments_remaining == 0:
+                break
+        tournaments_this_generation = tournaments_per_generation
+        if tournaments_remaining is not None:
+            tournaments_this_generation = min(tournaments_per_generation, tournaments_remaining)
 
-        selfplay_scores, selfplay_lengths = evaluate_selfplay_population(
+        selfplay_scores, selfplay_lengths, tournament_baseline_scores = evaluate_selfplay_population(
             population=population,
             opponents_per_genome=args.opponents_per_genome,
             seed_base=generation_seed_base,
+            max_tournaments=tournaments_this_generation,
+            baseline_seed_base=generation_seed_base + 5000,
         )
         selfplay_mean = float(np.mean(selfplay_scores))
 
@@ -126,11 +137,17 @@ def main():
             episodes=args.benchmark_episodes,
             seed_base=generation_seed_base + 7777,
         )
-        plotted_baseline_score = float(benchmark_scores[0]) if benchmark_scores else benchmark_mean
-        current_tournament = (generation + 1) * tournaments_per_generation
-        genome_history.append((generation, current_tournament, best.copy(), plotted_baseline_score))
-        history_baseline_score.append(plotted_baseline_score)
-        history_tournament.append(current_tournament)
+        total_tournaments_played += len(tournament_baseline_scores)
+        history_baseline_score.extend(tournament_baseline_scores)
+        history_tournament.extend(
+            range(
+                total_tournaments_played - len(tournament_baseline_scores) + 1,
+                total_tournaments_played + 1,
+            )
+        )
+        current_tournament = total_tournaments_played
+        topology_score = float(benchmark_scores[0]) if benchmark_scores else benchmark_mean
+        genome_history.append((generation, current_tournament, best.copy(), topology_score))
 
         if benchmark_mean > best_ever_baseline_score:
             best_ever_baseline_score = benchmark_mean
@@ -144,7 +161,7 @@ def main():
             f"best_selfplay={max(selfplay_scores): .3f} | "
             f"mean_selfplay={selfplay_mean: .3f} | "
             f"mean_ep_len={float(np.mean(selfplay_lengths)): .1f} | "
-            f"baseline_score={plotted_baseline_score: .3f} | "
+            f"baseline_score={topology_score: .3f} | "
             f"baseline_benchmark={benchmark_mean: .3f} ± {benchmark_std: .3f} | "
             f"species={len(population.species)}"
         )

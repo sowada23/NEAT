@@ -22,7 +22,13 @@ import numpy as np
 from .episodes import run_selfplay_episode, run_vs_baseline_episode
 
 
-def evaluate_selfplay_population(population, opponents_per_genome, seed_base):
+def evaluate_selfplay_population(
+    population,
+    opponents_per_genome,
+    seed_base,
+    max_tournaments=None,
+    baseline_seed_base=None,
+):
     """
     Evaluate each genome only against other genomes in the current population.
 
@@ -34,6 +40,8 @@ def evaluate_selfplay_population(population, opponents_per_genome, seed_base):
     games_played = [0] * n
 
     rng = np.random.default_rng(seed_base)
+    tournament_baseline_scores = []
+    tournaments_played = 0
 
     for i, genome in enumerate(population.members):
         candidate_indices = [j for j in range(n) if j != i]
@@ -44,6 +52,9 @@ def evaluate_selfplay_population(population, opponents_per_genome, seed_base):
         opponents = rng.choice(candidate_indices, size=sample_size, replace=False)
 
         for local_idx, j in enumerate(opponents):
+            if max_tournaments is not None and tournaments_played >= max_tournaments:
+                break
+
             opponent = population.members[int(j)]
             match_seed = seed_base + i * 1000 + local_idx * 10
 
@@ -65,6 +76,18 @@ def evaluate_selfplay_population(population, opponents_per_genome, seed_base):
             total_scores[i] += score_right + genome_score_left
             total_lengths[i] += steps_right + steps_left
             games_played[i] += 2
+            tournaments_played += 1
+
+            if baseline_seed_base is not None:
+                baseline_score, _baseline_steps, _baseline_frames = run_vs_baseline_episode(
+                    genome=genome,
+                    seed=baseline_seed_base + tournaments_played - 1,
+                    capture_frames=False,
+                )
+                tournament_baseline_scores.append(float(baseline_score))
+
+        if max_tournaments is not None and tournaments_played >= max_tournaments:
+            break
 
     avg_scores = []
     avg_lengths = []
@@ -76,7 +99,7 @@ def evaluate_selfplay_population(population, opponents_per_genome, seed_base):
         avg_lengths.append(avg_length)
         genome.fitness = avg_score + 6.0
 
-    return avg_scores, avg_lengths
+    return avg_scores, avg_lengths, tournament_baseline_scores
 
 
 def evaluate_vs_baseline(genome, episodes, seed_base):
