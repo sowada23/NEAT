@@ -82,11 +82,17 @@ def main():
 
     history_benchmark_mean = []
     history_benchmark_std = []
+    history_tournament = []
     genome_history = []
 
 
     for generation in range(args.generations + 1):
         generation_seed_base = args.seed + generation * 10000
+        effective_opponents_per_genome = min(
+            args.opponents_per_genome,
+            max(0, len(population.members) - 1),
+        )
+        tournaments_per_generation = len(population.members) * effective_opponents_per_genome
 
         selfplay_scores, selfplay_lengths = evaluate_selfplay_population(
             population=population,
@@ -103,6 +109,7 @@ def main():
         genome_history.append((generation, best.copy(), benchmark_mean))
         history_benchmark_mean.append(benchmark_mean)
         history_benchmark_std.append(benchmark_std)
+        history_tournament.append((generation + 1) * tournaments_per_generation)
 
         if benchmark_mean > best_ever_baseline_score:
             best_ever_baseline_score = benchmark_mean
@@ -122,7 +129,13 @@ def main():
         if generation < args.generations:
             population.reproduce()
 
-    svg_path = save_baseline_benchmark_svg(history_benchmark_mean, history_benchmark_std, out_dir)
+    svg_path = save_baseline_benchmark_svg(
+        history_benchmark_mean,
+        history_benchmark_std,
+        out_dir,
+        x_values=history_tournament,
+        x_label="Tournament",
+    )
     gif_path, gif_score, gif_steps = save_champion_gif(
         best_ever,
         out_dir=out_dir,

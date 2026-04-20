@@ -18,10 +18,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def save_baseline_benchmark_svg(history_mean, history_std, out_dir):
+def save_baseline_benchmark_svg(history_mean, history_std, out_dir, x_values=None, x_label="Generation"):
     out_path = out_dir / "baseline_benchmark_history.svg"
 
-    x = np.arange(len(history_mean))
+    if x_values is None:
+        x = np.arange(len(history_mean))
+    else:
+        x = np.asarray(x_values, dtype=np.float32)
     mean = np.asarray(history_mean, dtype=np.float32)
     std = np.asarray(history_std, dtype=np.float32)
 
@@ -29,7 +32,7 @@ def save_baseline_benchmark_svg(history_mean, history_std, out_dir):
     plt.fill_between(x, mean - std, mean + std, color="#dfe4ea", alpha=0.55, linewidth=0)
     plt.plot(x, mean, color="black", linewidth=1.0)
     plt.axhline(0.0, color="#666666", linestyle="--", linewidth=1.0)
-    plt.xlabel("Generation")
+    plt.xlabel(x_label)
     plt.ylabel("Average Score vs Baseline Policy")
     plt.title("NEAT Self-Play: Champion Benchmark vs Baseline Policy")
     plt.grid(True, alpha=0.35)
