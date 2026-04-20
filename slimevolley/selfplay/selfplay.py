@@ -39,6 +39,7 @@ def main():
     parser.add_argument("--population", type=int, default=100)
     parser.add_argument("--opponents-per-genome", type=int, default=4)
     parser.add_argument("--benchmark-episodes", type=int, default=7)
+    parser.add_argument("--plot-save-freq", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gif-seed", type=int, default=1234)
     parser.add_argument("--gif-fps", type=int, default=20)
@@ -87,6 +88,9 @@ def main():
     history_tournament = []
     genome_history = []
     total_tournaments_played = 0
+    checkpoint_history = []
+    checkpoint_dir = out_dir / "checkpoint_genomes"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     effective_opponents_per_genome = min(
         args.opponents_per_genome,
@@ -109,6 +113,9 @@ def main():
         total_generations = args.generations
     else:
         total_generations = default_generations
+
+    if args.plot_save_freq < 1:
+        parser.error("--plot-save-freq must be at least 1.")
 
 
     for generation in range(total_generations + 1):
@@ -149,6 +156,17 @@ def main():
         topology_score = float(benchmark_scores[0]) if benchmark_scores else benchmark_mean
         genome_history.append((generation, current_tournament, best.copy(), topology_score))
 
+        checkpoints_crossed = current_tournament // args.plot_save_freq
+        checkpoints_saved = len(checkpoint_history)
+        if checkpoints_crossed > checkpoints_saved:
+            checkpoint_genome = best.copy()
+            for checkpoint_idx in range(checkpoints_saved + 1, checkpoints_crossed + 1):
+                checkpoint_tournament = checkpoint_idx * args.plot_save_freq
+                checkpoint_path = checkpoint_dir / f"checkpoint_tournament_{checkpoint_tournament:08d}.pkl"
+                with open(checkpoint_path, "wb") as f:
+                    pickle.dump(checkpoint_genome.copy(), f)
+                checkpoint_history.append((checkpoint_tournament, checkpoint_genome.copy()))
+
         if benchmark_mean > best_ever_baseline_score:
             best_ever_baseline_score = benchmark_mean
             best_ever = best.copy()
@@ -169,11 +187,33 @@ def main():
         if generation < total_generations:
             population.reproduce()
 
+    if total_tournaments_played > 0 and (
+        not checkpoint_history or checkpoint_history[-1][0] != total_tournaments_played
+    ):
+        final_checkpoint_path = checkpoint_dir / f"checkpoint_tournament_{total_tournaments_played:08d}.pkl"
+        with open(final_checkpoint_path, "wb") as f:
+            pickle.dump(best.copy(), f)
+        checkpoint_history.append((total_tournaments_played, best.copy()))
+
+    plot_tournaments = []
+    plot_benchmark_mean = []
+    plot_benchmark_std = []
+    for checkpoint_tournament, checkpoint_genome in checkpoint_history:
+        checkpoint_mean, checkpoint_std, _checkpoint_len, _checkpoint_scores = evaluate_vs_baseline(
+            genome=checkpoint_genome,
+            episodes=args.benchmark_episodes,
+            seed_base=args.seed + 900000 + checkpoint_tournament,
+        )
+        plot_tournaments.append(checkpoint_tournament / 1000.0)
+        plot_benchmark_mean.append(checkpoint_mean)
+        plot_benchmark_std.append(checkpoint_std)
+
     svg_path = save_baseline_benchmark_svg(
-        history_baseline_score,
+        plot_benchmark_mean,
+        plot_benchmark_std,
         out_dir,
-        x_values=history_tournament,
-        x_label="Tournament",
+        x_values=plot_tournaments,
+        x_label="Tournament (K)",
     )
     gif_path, gif_score, gif_steps = save_champion_gif(
         best_ever,
