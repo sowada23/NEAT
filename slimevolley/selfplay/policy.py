@@ -17,8 +17,5 @@ In short:
 import numpy as np
 
 def genome_to_action(genome, obs):
-    """Convert a genome output vector into SlimeVolley's 3-button action."""
-    outputs = genome.forward(obs)
-    outputs = np.asarray(outputs, dtype=np.float32)
-    action = (outputs > 0.5).astype(np.int8)
-    return action.tolist()
+    outputs = np.asarray(genome.forward(obs), dtype=np.float32)
+    return (outputs > 0.0).astype(np.int8).tolist()
