@@ -71,7 +71,7 @@ def main():
         species_threshold=3.0,
         min_species_threshold=0.15,
         max_species_threshold=15.0,
-        target_species_number=8,
+        target_species_number=15,
         adaptive_threshold=0.1,
         c1=1.0,
         c2=1.0,
