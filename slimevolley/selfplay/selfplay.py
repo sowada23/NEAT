@@ -37,8 +37,13 @@ def main():
     parser.add_argument("--generations", type=int, default=None)
     parser.add_argument("--tournaments", type=int, default=None)
     parser.add_argument("--population", type=int, default=100)
-    parser.add_argument("--opponents-per-genome", type=int, default=4)
-    parser.add_argument("--benchmark-episodes", type=int, default=7)
+    parser.add_argument("--opponents-per-genome", type=int, default=10)
+    parser.add_argument("--benchmark-episodes", type=int, default=25)
+    parser.add_argument("--baseline-fitness-weight", type=float, default=0.30)
+    parser.add_argument("--baseline-fitness-episodes", type=int, default=3)
+    parser.add_argument("--hall-of-fame-size", type=int, default=20)
+    parser.add_argument("--hall-of-fame-save-freq", type=int, default=5)
+    parser.add_argument("--hall-of-fame-opponents", type=int, default=4)
     parser.add_argument("--plot-save-freq", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gif-seed", type=int, default=1234)
@@ -89,6 +94,7 @@ def main():
     genome_history = []
     total_tournaments_played = 0
     checkpoint_history = []
+    hall_of_fame = []
     checkpoint_dir = out_dir / "checkpoint_genomes"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
@@ -116,6 +122,16 @@ def main():
 
     if args.plot_save_freq < 1:
         parser.error("--plot-save-freq must be at least 1.")
+    if not 0.0 <= args.baseline_fitness_weight <= 1.0:
+        parser.error("--baseline-fitness-weight must be between 0.0 and 1.0.")
+    if args.baseline_fitness_episodes < 0:
+        parser.error("--baseline-fitness-episodes must be at least 0.")
+    if args.hall_of_fame_size < 0:
+        parser.error("--hall-of-fame-size must be at least 0.")
+    if args.hall_of_fame_save_freq < 1:
+        parser.error("--hall-of-fame-save-freq must be at least 1.")
+    if args.hall_of_fame_opponents < 0:
+        parser.error("--hall-of-fame-opponents must be at least 0.")
 
 
     for generation in range(total_generations + 1):
@@ -135,6 +151,10 @@ def main():
             seed_base=generation_seed_base,
             max_tournaments=tournaments_this_generation,
             baseline_seed_base=generation_seed_base + 5000,
+            hall_of_fame_genomes=hall_of_fame,
+            hall_of_fame_opponents=args.hall_of_fame_opponents,
+            baseline_fitness_episodes=args.baseline_fitness_episodes,
+            baseline_fitness_weight=args.baseline_fitness_weight,
         )
         selfplay_mean = float(np.mean(selfplay_scores))
 
@@ -173,6 +193,11 @@ def main():
             with open(out_dir / "best_slimevolley_selfplay_genome.pkl", "wb") as f:
                 pickle.dump(best_ever, f)
 
+        if args.hall_of_fame_size > 0 and generation % args.hall_of_fame_save_freq == 0:
+            hall_of_fame.append(best.copy())
+            if len(hall_of_fame) > args.hall_of_fame_size:
+                hall_of_fame = hall_of_fame[-args.hall_of_fame_size :]
+
         print(
             f"Generation {generation:03d} | "
             f"tournament={history_tournament[-1]:06d} | "
@@ -181,7 +206,8 @@ def main():
             f"mean_ep_len={float(np.mean(selfplay_lengths)): .1f} | "
             f"baseline_score={topology_score: .3f} | "
             f"baseline_benchmark={benchmark_mean: .3f} ± {benchmark_std: .3f} | "
-            f"species={len(population.species)}"
+            f"species={len(population.species)} | "
+            f"hall_of_fame={len(hall_of_fame)}"
         )
 
         if generation < total_generations:
