@@ -39,8 +39,8 @@ def main():
     parser.add_argument("--population", type=int, default=100)
     parser.add_argument("--opponents-per-genome", type=int, default=16)
     parser.add_argument("--benchmark-episodes", type=int, default=25)
-    parser.add_argument("--baseline-fitness-weight", type=float, default=0.30)
-    parser.add_argument("--baseline-fitness-episodes", type=int, default=3)
+    parser.add_argument("--baseline-fitness-weight", type=float, default=0.70)
+    parser.add_argument("--baseline-fitness-episodes", type=int, default=7)
     parser.add_argument("--hall-of-fame-size", type=int, default=20)
     parser.add_argument("--hall-of-fame-save-freq", type=int, default=5)
     parser.add_argument("--hall-of-fame-opponents", type=int, default=4)
@@ -57,7 +57,7 @@ def main():
 
     config = NEATConfig(
         population_size=args.population,
-        genome_shape=(12, 3),
+        genome_shape=(12, 6),
         hid_node_activation="tanh",
         out_node_activation="tanh",
         max_weight=3.0,

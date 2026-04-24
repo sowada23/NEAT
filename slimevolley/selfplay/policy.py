@@ -16,6 +16,15 @@ In short:
 
 import numpy as np
 
+ACTION_TABLE = [
+    [0, 0, 0],  # NOOP
+    [1, 0, 0],  # FORWARD
+    [1, 0, 1],  # FORWARD_JUMP
+    [0, 0, 1],  # JUMP
+    [0, 1, 1],  # BACKWARD_JUMP
+    [0, 1, 0],  # BACKWARD
+]
 def genome_to_action(genome, obs):
     outputs = np.asarray(genome.forward(obs), dtype=np.float32)
-    return (outputs > 0.0).astype(np.int8).tolist()
+    action_idx = int(np.argmax(outputs))
+    return ACTION_TABLE[action_idx]
