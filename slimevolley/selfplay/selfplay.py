@@ -37,7 +37,7 @@ def main():
     parser.add_argument("--generations", type=int, default=None)
     parser.add_argument("--tournaments", type=int, default=None)
     parser.add_argument("--population", type=int, default=100)
-    parser.add_argument("--opponents-per-genome", type=int, default=10)
+    parser.add_argument("--opponents-per-genome", type=int, default=16)
     parser.add_argument("--benchmark-episodes", type=int, default=25)
     parser.add_argument("--baseline-fitness-weight", type=float, default=0.30)
     parser.add_argument("--baseline-fitness-episodes", type=int, default=3)
