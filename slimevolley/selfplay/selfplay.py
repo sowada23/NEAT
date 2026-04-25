@@ -50,7 +50,7 @@ def main():
     parser.add_argument("--gif-fps", type=int, default=20)
     parser.add_argument("--topology-gif-fps", type=int, default=6)
     parser.add_argument("--topology-sample-every", type=int, default=1)
-    parser.add_argument("--out-dir", type=str, default="out/slimevolley_neat_selfplay")
+    parser.add_argument("--out-dir", type=str, default="selfplay/output")
     args = parser.parse_args()
 
     out_dir = build_output_dir((EXAMPLES_DIR / args.out_dir).resolve())

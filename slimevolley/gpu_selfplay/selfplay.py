@@ -38,7 +38,7 @@ def main():
     parser.add_argument("--gif-fps", type=int, default=20)
     parser.add_argument("--topology-gif-fps", type=int, default=6)
     parser.add_argument("--topology-sample-every", type=int, default=1)
-    parser.add_argument("--out-dir", type=str, default="out/slimevolley_neat_selfplay")
+    parser.add_argument("--out-dir", type=str, default="gpu_selfplay/output")
     parser.add_argument("--max-steps", type=int, default=3000)
     parser.add_argument("--batch-size", type=int, default=256)
     args = parser.parse_args()
