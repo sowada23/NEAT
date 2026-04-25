@@ -9,8 +9,6 @@ import numpy as np
 from neat import NEATConfig, Population
 from slimevolley.gpu_selfplay.evaluation import evaluate_selfplay_population_gpu
 from slimevolley.selfplay.output import build_output_dir
-from slimevolley.selfplay.viz.benchmark_plot import save_baseline_benchmark_svg
-from slimevolley.selfplay.viz.topology import save_topology_evolution_gif
 
 
 def _safe_evaluate_vs_baseline(genome, episodes: int, seed_base: int):
@@ -26,6 +24,17 @@ def _safe_evaluate_vs_baseline(genome, episodes: int, seed_base: int):
         return None
 
 
+def _safe_save_baseline_benchmark_svg(history_mean, history_std, out_dir):
+    try:
+        from slimevolley.selfplay.viz.benchmark_plot import save_baseline_benchmark_svg
+    except Exception:
+        return None
+    try:
+        return save_baseline_benchmark_svg(history_mean, history_std, out_dir)
+    except Exception:
+        return None
+
+
 def _safe_save_champion_gif(genome, out_dir, seed: int, fps: int):
     try:
         from slimevolley.selfplay.viz.gif import save_champion_gif
@@ -35,6 +44,22 @@ def _safe_save_champion_gif(genome, out_dir, seed: int, fps: int):
         return save_champion_gif(genome, out_dir=out_dir, seed=seed, fps=fps)
     except Exception:
         return None, None, None
+
+
+def _safe_save_topology_evolution_gif(genome_history, out_dir, fps: int, sample_every: int):
+    try:
+        from slimevolley.selfplay.viz.topology import save_topology_evolution_gif
+    except Exception:
+        return None
+    try:
+        return save_topology_evolution_gif(
+            genome_history,
+            out_dir=out_dir,
+            fps=fps,
+            sample_every=sample_every,
+        )
+    except Exception:
+        return None
 
 
 def main():
@@ -112,7 +137,7 @@ def main():
             seed_base=generation_seed_base + 7777,
         )
         if benchmark_result is not None:
-            benchmark_mean, benchmark_std, _benchmark_len = benchmark_result
+            benchmark_mean, benchmark_std, _benchmark_len, _benchmark_scores = benchmark_result
             history_benchmark_mean.append(float(benchmark_mean))
             history_benchmark_std.append(float(benchmark_std))
         else:
@@ -148,7 +173,11 @@ def main():
 
     svg_path = None
     if history_benchmark_mean and np.isfinite(np.asarray(history_benchmark_mean)).any():
-        svg_path = save_baseline_benchmark_svg(history_benchmark_mean, history_benchmark_std, out_dir)
+        svg_path = _safe_save_baseline_benchmark_svg(
+            history_benchmark_mean,
+            history_benchmark_std,
+            out_dir,
+        )
 
     gif_path = None
     gif_score = None
@@ -163,15 +192,12 @@ def main():
 
     topology_gif_path = None
     if genome_history:
-        try:
-            topology_gif_path = save_topology_evolution_gif(
-                genome_history,
-                out_dir=out_dir,
-                fps=args.topology_gif_fps,
-                sample_every=args.topology_sample_every,
-            )
-        except Exception:
-            topology_gif_path = None
+        topology_gif_path = _safe_save_topology_evolution_gif(
+            genome_history,
+            out_dir=out_dir,
+            fps=args.topology_gif_fps,
+            sample_every=args.topology_sample_every,
+        )
 
     print("\nGPU self-play training complete.")
     print(f"Best genome: {out_dir / 'best_slimevolley_gpu_selfplay_genome.pkl'}")
