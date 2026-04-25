@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
+import numpy as np
+
 try:
     import jax
     import jax.numpy as jnp
@@ -28,6 +30,8 @@ BALL_RADIUS = 0.5
 PLAYER_RADIUS = 1.5
 INIT_DELAY_FRAMES = 30
 OBS_SCALE = 10.0
+PIXEL_WIDTH = 168
+PIXEL_HEIGHT = 84
 
 
 class BatchedAgentState(NamedTuple):
@@ -394,3 +398,59 @@ def step_batched_env(
     )
     obs_right, obs_left = batched_observations(next_state)
     return next_state, obs_right, obs_left, reward, done
+
+
+def render_state_frame(state: BatchedEnvState, batch_idx: int = 0) -> np.ndarray:
+    """Render one JAX environment state to a small RGB frame for GIF artifacts."""
+    ball_x = float(np.asarray(state.ball.x)[batch_idx])
+    ball_y = float(np.asarray(state.ball.y)[batch_idx])
+    left_x = float(np.asarray(state.agent_left.x)[batch_idx])
+    left_y = float(np.asarray(state.agent_left.y)[batch_idx])
+    right_x = float(np.asarray(state.agent_right.x)[batch_idx])
+    right_y = float(np.asarray(state.agent_right.y)[batch_idx])
+    left_life = int(np.asarray(state.agent_left.life)[batch_idx])
+    right_life = int(np.asarray(state.agent_right.life)[batch_idx])
+
+    frame = np.zeros((PIXEL_HEIGHT, PIXEL_WIDTH, 3), dtype=np.uint8)
+    frame[:, :] = (11, 16, 19)
+
+    def to_px(x):
+        return int(round((x + REF_W / 2.0) / REF_W * (PIXEL_WIDTH - 1)))
+
+    def to_py(y):
+        return int(round((1.0 - y / REF_H) * (PIXEL_HEIGHT - 1)))
+
+    def draw_rect(cx, cy, hw, hh, color):
+        x0 = max(0, to_px(cx - hw))
+        x1 = min(PIXEL_WIDTH - 1, to_px(cx + hw))
+        y0 = max(0, to_py(cy + hh))
+        y1 = min(PIXEL_HEIGHT - 1, to_py(cy - hh))
+        frame[y0 : y1 + 1, x0 : x1 + 1] = color
+
+    def draw_circle(cx, cy, radius, color, upper_half=False):
+        px = to_px(cx)
+        py = to_py(cy)
+        pr = max(1, int(round(radius / REF_W * PIXEL_WIDTH)))
+        y_min = max(0, py - pr)
+        y_max = min(PIXEL_HEIGHT - 1, py + pr)
+        x_min = max(0, px - pr)
+        x_max = min(PIXEL_WIDTH - 1, px + pr)
+        yy, xx = np.ogrid[y_min : y_max + 1, x_min : x_max + 1]
+        mask = (xx - px) ** 2 + (yy - py) ** 2 <= pr * pr
+        if upper_half:
+            mask &= yy <= py
+        frame[y_min : y_max + 1, x_min : x_max + 1][mask] = color
+
+    draw_rect(0.0, REF_U / 2.0, REF_W / 2.0, REF_U / 2.0, (116, 114, 117))
+    draw_rect(0.0, 0.75 + REF_WALL_HEIGHT / 2.0, REF_WALL_WIDTH / 2.0, (REF_WALL_HEIGHT - 1.5) / 2.0, (102, 56, 35))
+    draw_circle(0.0, REF_WALL_HEIGHT, REF_WALL_WIDTH / 2.0, (102, 56, 35))
+    draw_circle(left_x, left_y, PLAYER_RADIUS, (35, 93, 188), upper_half=True)
+    draw_circle(right_x, right_y, PLAYER_RADIUS, (255, 236, 0), upper_half=True)
+    draw_circle(ball_x, ball_y, BALL_RADIUS, (217, 79, 0))
+
+    for i in range(max(0, left_life - 1)):
+        draw_circle(-REF_W / 2.0 + 2.0 + i * 1.4, 2.0, 0.35, (102, 56, 35))
+    for i in range(max(0, right_life - 1)):
+        draw_circle(REF_W / 2.0 - 2.0 - i * 1.4, 2.0, 0.35, (102, 56, 35))
+
+    return frame

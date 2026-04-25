@@ -20,6 +20,18 @@ ACT_RELU = 1
 ACT_SIGMOID = 2
 ACT_TANH = 3
 
+ACTION_TABLE = jnp.asarray(
+    [
+        [0, 0, 0],
+        [1, 0, 0],
+        [1, 0, 1],
+        [0, 0, 1],
+        [0, 1, 1],
+        [0, 1, 0],
+    ],
+    dtype=jnp.int8,
+)
+
 
 class BatchedPolicyGenome(NamedTuple):
     weights: jax.Array
@@ -145,4 +157,5 @@ def forward_batched(genomes: BatchedPolicyGenome, obs_batch: jax.Array) -> jax.A
 
 def policy_actions_batched(genomes: BatchedPolicyGenome, obs_batch: jax.Array) -> jax.Array:
     outputs = forward_batched(genomes, obs_batch)
-    return (outputs > 0.5).astype(jnp.int8)
+    action_idx = jnp.argmax(outputs, axis=-1)
+    return ACTION_TABLE[action_idx]

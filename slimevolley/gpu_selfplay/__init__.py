@@ -1,3 +1,4 @@
+from slimevolley.gpu_selfplay.bootstrap import EXAMPLES_DIR, NEATConfig, Population
 from slimevolley.gpu_selfplay.env import (
     BatchedEnvState,
     batched_observations,
@@ -6,6 +7,7 @@ from slimevolley.gpu_selfplay.env import (
 )
 from slimevolley.gpu_selfplay.evaluation import evaluate_selfplay_population_gpu
 from slimevolley.gpu_selfplay.padded_policy import (
+    ACTION_TABLE,
     BatchedPolicyGenome,
     gather_batched_genomes,
     genomes_to_batched_policy,
@@ -13,10 +15,14 @@ from slimevolley.gpu_selfplay.padded_policy import (
 )
 
 __all__ = [
+    "EXAMPLES_DIR",
+    "NEATConfig",
+    "Population",
     "BatchedEnvState",
     "reset_batched_env",
     "step_batched_env",
     "batched_observations",
+    "ACTION_TABLE",
     "BatchedPolicyGenome",
     "genomes_to_batched_policy",
     "gather_batched_genomes",
