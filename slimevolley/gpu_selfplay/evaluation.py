@@ -301,6 +301,26 @@ def evaluate_selfplay_population(
         batch_size,
     )
 
+    baseline_fitness_means = None
+    if baseline_fitness_episodes > 0 and baseline_fitness_weight > 0.0:
+        baseline_genomes = [
+            genome
+            for genome in population.members
+            for _episode_idx in range(baseline_fitness_episodes)
+        ]
+        baseline_seeds = [
+            seed_base + 800000 + i * 100 + episode_idx
+            for i in range(n)
+            for episode_idx in range(baseline_fitness_episodes)
+        ]
+        baseline_scores, _baseline_lengths = _evaluate_genome_vs_baseline_batch(
+            baseline_genomes,
+            baseline_seeds,
+            max_steps=max_steps,
+            batch_size=batch_size,
+        )
+        baseline_fitness_means = baseline_scores.reshape(n, baseline_fitness_episodes).mean(axis=1)
+
     hall_of_fame_genomes = hall_of_fame_genomes or []
     if hall_of_fame_genomes and hall_of_fame_opponents > 0:
         rng = np.random.default_rng(seed_base)
@@ -341,19 +361,8 @@ def evaluate_selfplay_population(
         avg_lengths.append(avg_length)
         fitness_score = avg_score
 
-        if baseline_fitness_episodes > 0 and baseline_fitness_weight > 0.0:
-            baseline_genomes = [genome] * baseline_fitness_episodes
-            baseline_seeds = [
-                seed_base + 800000 + i * 100 + episode_idx
-                for episode_idx in range(baseline_fitness_episodes)
-            ]
-            baseline_scores, _baseline_lengths = _evaluate_genome_vs_baseline_batch(
-                baseline_genomes,
-                baseline_seeds,
-                max_steps=max_steps,
-                batch_size=batch_size,
-            )
-            baseline_mean = float(np.mean(baseline_scores)) if len(baseline_scores) else 0.0
+        if baseline_fitness_means is not None:
+            baseline_mean = float(baseline_fitness_means[i])
             fitness_score = (
                 selfplay_fitness_weight * avg_score
                 + baseline_fitness_weight * baseline_mean
