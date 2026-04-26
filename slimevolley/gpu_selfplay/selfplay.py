@@ -31,7 +31,7 @@ def main():
     parser.add_argument("--baseline-fitness-episodes", type=int, default=7)
     parser.add_argument("--hall-of-fame-size", type=int, default=20)
     parser.add_argument("--hall-of-fame-save-freq", type=int, default=5)
-    parser.add_argument("--hall-of-fame-opponents", type=int, default=4)
+    parser.add_argument("--hall-of-fame-opponents", type=int, default=0)
     parser.add_argument("--plot-save-freq", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gif-seed", type=int, default=1234)

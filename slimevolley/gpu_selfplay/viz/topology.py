@@ -9,6 +9,13 @@ from collections import defaultdict
 import imageio.v2 as imageio
 import numpy as np
 
+try:
+    from PIL import Image, ImageDraw, ImageFont
+except ImportError:  # pragma: no cover
+    Image = None
+    ImageDraw = None
+    ImageFont = None
+
 
 def _node_positions(genome):
     nodes = list(genome.nodes.values())
@@ -79,6 +86,40 @@ def _draw_circle(frame, cx, cy, radius, color):
     frame[y_min : y_max + 1, x_min : x_max + 1][mask] = color
 
 
+def _text_font(size):
+    if ImageFont is None:
+        return None
+    try:
+        return ImageFont.truetype("DejaVuSans.ttf", size)
+    except OSError:
+        return ImageFont.load_default()
+
+
+def _draw_hidden_labels(frame, labels):
+    if Image is None or ImageDraw is None:
+        return frame
+
+    image = Image.fromarray(frame)
+    draw = ImageDraw.Draw(image)
+    font = _text_font(13)
+
+    for text, x, y in labels:
+        label_x = min(frame.shape[1] - 92, x + 18)
+        label_y = max(4, min(frame.shape[0] - 42, y - 18))
+        bbox = draw.multiline_textbbox((label_x, label_y), text, font=font, spacing=2)
+        pad = 4
+        box = (
+            bbox[0] - pad,
+            bbox[1] - pad,
+            bbox[2] + pad,
+            bbox[3] + pad,
+        )
+        draw.rounded_rectangle(box, radius=4, fill=(255, 255, 255), outline=(160, 160, 160), width=1)
+        draw.multiline_text((label_x, label_y), text, fill=(25, 25, 25), font=font, spacing=2)
+
+    return np.asarray(image, dtype=np.uint8)
+
+
 def render_genome_topology_frame(genome, generation=None, tournament=None, benchmark_score=None, figsize=(10, 6)):
     width = int(figsize[0] * 140)
     height = int(figsize[1] * 140)
@@ -111,6 +152,7 @@ def render_genome_topology_frame(genome, generation=None, tournament=None, bench
         "output": (52, 168, 83),
     }
     radius_by_type = {"input": 12, "hidden": 14, "output": 15}
+    hidden_labels = []
     for node in sorted(genome.nodes.values(), key=lambda n: (n.type, n.id)):
         x, y = point(positions[node.id])
         _draw_circle(
@@ -120,6 +162,11 @@ def render_genome_topology_frame(genome, generation=None, tournament=None, bench
             radius_by_type.get(node.type, 12),
             color_by_type.get(node.type, (120, 120, 120)),
         )
+        if node.type == "hidden":
+            activation = node.activation if node.activation is not None else "linear"
+            hidden_labels.append((f"H{node.id}\nact={activation}", x, y))
+
+    frame = _draw_hidden_labels(frame, hidden_labels)
 
     return frame
 
