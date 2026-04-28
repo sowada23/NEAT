@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backprop-neat"
+version = "0.1.0"
+description = "Backprop-NEAT in JAX for toy 2D classification tasks."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "jax>=0.4",
+  "numpy>=1.24",
+  "matplotlib>=3.7",
+  "imageio>=2.31",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+backprop-neat-toy2d = "backprop_neat.cli.toy2d:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
