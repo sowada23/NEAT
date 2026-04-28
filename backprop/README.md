@@ -18,11 +18,22 @@ python -m pip install -e ".[test]"
 
 ## Run A Demo
 
+From the parent repo root, `/Users/sora/NEATJAX`, run:
+
 ```bash
+python backprop/run_toy2d.py --dataset xor --generations 20 --population 40 --seed 7
+```
+
+Or install the standalone package and use its console script:
+
+```bash
+cd /Users/sora/NEATJAX/backprop
+python -m pip install -e ".[test]"
 backprop-neat-toy2d --dataset xor --generations 20 --population 40 --seed 7
 ```
 
-Artifacts are written under `outputs/output_N/`:
+Artifacts are written under `backprop/outputs/output_N/` when using the
+root-friendly launcher:
 
 - `best_genome.pkl`
 - `history.npz`
@@ -39,4 +50,3 @@ copied back to the genome before reproduction.
 
 Only smooth differentiable activations are used in Backprop-NEAT runs:
 `tanh`, `sigmoid`, `softplus`, and `silu`.
-
