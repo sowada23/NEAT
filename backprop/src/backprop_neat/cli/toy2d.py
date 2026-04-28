@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import pickle
 import random
 from pathlib import Path
@@ -11,7 +12,7 @@ from backprop_neat.config import BackpropNEATConfig
 from backprop_neat.datasets import generate_split
 from backprop_neat.evolution.population import Population
 from backprop_neat.jax import evaluate_and_train_genome
-from backprop_neat.visualization import save_decision_boundary, save_topology
+from backprop_neat.visualization import save_all_history_svgs, save_decision_boundary, save_topology
 
 
 def _next_output_dir(root: Path) -> Path:
@@ -45,14 +46,59 @@ def _evaluate_population(population: Population, split, generation: int, seed: i
             )
         )
     best = population.best()
-    return {
-        "best_fitness": float(best.fitness),
-        "best_test_accuracy": float(best.metrics["test_accuracy"]),
-        "best_test_loss": float(best.metrics["test_loss"]),
-        "mean_fitness": float(np.mean([m["fitness"] for m in metrics])),
-        "mean_test_accuracy": float(np.mean([m["test_accuracy"] for m in metrics])),
+    numeric_keys = [
+        "fitness",
+        "raw_score",
+        "complexity_penalty",
+        "enabled_connections",
+        "hidden_nodes",
+        "train_loss",
+        "train_accuracy",
+        "test_loss",
+        "test_accuracy",
+    ]
+    summary = {
         "species": float(len(population.species)),
     }
+    for key in numeric_keys:
+        values = [float(m[key]) for m in metrics]
+        if key in {"train_loss", "test_loss", "complexity_penalty", "enabled_connections", "hidden_nodes"}:
+            summary[f"best_{key}"] = float(best.metrics[key])
+            summary[f"mean_{key}"] = float(np.mean(values))
+            summary[f"min_{key}"] = float(np.min(values))
+        else:
+            summary[f"best_{key}"] = float(best.metrics[key])
+            summary[f"mean_{key}"] = float(np.mean(values))
+            summary[f"max_{key}"] = float(np.max(values))
+    summary["best_nodes"] = float(len(best.nodes))
+    summary["best_connections_total"] = float(len(best.connections))
+    return {
+        **summary,
+    }
+
+
+def _print_generation(generation: int, generations: int, summary: dict[str, float]) -> None:
+    print(
+        f"Generation {generation:03d}/{generations:03d} | "
+        f"fitness best/mean={summary['best_fitness']:.4f}/{summary['mean_fitness']:.4f} | "
+        f"test loss best/mean={summary['best_test_loss']:.4f}/{summary['mean_test_loss']:.4f} | "
+        f"train loss best/mean={summary['best_train_loss']:.4f}/{summary['mean_train_loss']:.4f} | "
+        f"test acc best/mean={summary['best_test_accuracy']:.3f}/{summary['mean_test_accuracy']:.3f} | "
+        f"complexity={summary['best_complexity_penalty']:.3f} | "
+        f"hidden={int(summary['best_hidden_nodes'])} | "
+        f"enabled_conn={int(summary['best_enabled_connections'])} | "
+        f"species={int(summary['species'])}",
+        flush=True,
+    )
+
+
+def _save_history_csv(history: list[dict[str, float]], out_path: Path) -> Path:
+    keys = sorted(history[0])
+    with open(out_path, "w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=keys)
+        writer.writeheader()
+        writer.writerows(history)
+    return out_path
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -93,6 +139,13 @@ def main(argv: list[str] | None = None) -> None:
     best_ever = None
     best_score = (-1.0, -1.0)
     best_generation = 0
+    print(f"Output dir: {out_dir.resolve()}")
+    print(
+        f"Training dataset={args.dataset} generations={args.generations} population={args.population} "
+        f"backprop_steps={args.backprop_steps} lr={args.learning_rate} "
+        f"conn_penalty={args.conn_penalty} node_penalty={args.node_penalty}",
+        flush=True,
+    )
 
     for generation in range(args.generations + 1):
         summary = _evaluate_population(population, split, generation, args.seed)
@@ -103,13 +156,7 @@ def main(argv: list[str] | None = None) -> None:
             best_ever = best.copy()
             best_generation = generation
         history.append({"generation": float(generation), **summary})
-        print(
-            f"Generation {generation:03d} | "
-            f"best_acc={summary['best_test_accuracy']:.3f} | "
-            f"mean_acc={summary['mean_test_accuracy']:.3f} | "
-            f"best_fitness={summary['best_fitness']:.3f} | "
-            f"species={int(summary['species'])}"
-        )
+        _print_generation(generation, args.generations, summary)
         if summary["best_test_accuracy"] >= args.stop_accuracy:
             break
         if generation < args.generations:
@@ -122,6 +169,8 @@ def main(argv: list[str] | None = None) -> None:
         pickle.dump(best_ever, f)
     keys = sorted(history[0])
     np.savez(out_dir / "history.npz", **{key: np.asarray([row[key] for row in history]) for key in keys})
+    _save_history_csv(history, out_dir / "history.csv")
+    history_svgs = save_all_history_svgs(history, out_dir)
     with open(out_dir / "summary.txt", "w", encoding="utf-8") as f:
         f.write(f"dataset: {args.dataset}\n")
         f.write(f"best_generation: {best_generation}\n")
@@ -135,9 +184,12 @@ def main(argv: list[str] | None = None) -> None:
         title=f"{args.dataset} decision boundary",
     )
     save_topology(best_ever, out_dir / "topology.png", title=f"{args.dataset} best topology")
+    print(f"History CSV: {out_dir / 'history.csv'}")
+    print(f"Fitness SVG: {history_svgs['fitness']}")
+    print(f"Loss SVG: {history_svgs['loss']}")
+    print(f"Accuracy SVG: {history_svgs['accuracy']}")
     print(f"Output dir: {out_dir.resolve()}")
 
 
 if __name__ == "__main__":
     main()
-

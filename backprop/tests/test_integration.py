@@ -26,6 +26,10 @@ def test_tiny_cli_run_creates_artifacts(tmp_path):
     )
     out_dir = tmp_path / "output_1"
     assert (out_dir / "best_genome.pkl").exists()
+    assert (out_dir / "accuracy.svg").exists()
+    assert (out_dir / "fitness.svg").exists()
+    assert (out_dir / "loss.svg").exists()
+    assert (out_dir / "history.csv").exists()
     assert (out_dir / "history.npz").exists()
     assert (out_dir / "summary.txt").exists()
     assert (out_dir / "decision_boundary.png").exists()
@@ -33,4 +37,3 @@ def test_tiny_cli_run_creates_artifacts(tmp_path):
     with open(out_dir / "best_genome.pkl", "rb") as f:
         genome = pickle.load(f)
     assert genome.forward([0.0, 1.0])
-
