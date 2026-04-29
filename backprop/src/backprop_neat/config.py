@@ -33,9 +33,9 @@ class BackpropNEATConfig:
     c1: float = 1.0
     c2: float = 1.0
     c3: float = 0.4
-    backprop_steps: int = 80
+    backprop_steps: int = 150
     learning_rate: float = 0.03
-    batch_size: int | None = None
+    batch_size: int = 512
     weight_decay: float = 1e-4
     complexity_conn_penalty: float = 0.01
     complexity_node_penalty: float = 0.03
