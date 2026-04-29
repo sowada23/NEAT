@@ -37,8 +37,8 @@ class BackpropNEATConfig:
     learning_rate: float = 0.03
     batch_size: int = 512
     weight_decay: float = 1e-4
-    complexity_conn_penalty: float = 0.01
-    complexity_node_penalty: float = 0.03
+    complexity_conn_penalty: float = 0.001
+    complexity_node_penalty: float = 0.001
     save_path: str = "outputs/"
     rng_seed: int | None = None
     metadata: dict[str, object] = field(default_factory=dict)
