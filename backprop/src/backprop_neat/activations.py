@@ -20,6 +20,10 @@ def silu(x: float) -> float:
     return x * sigmoid(x)
 
 
+def relu(x: float) -> float:
+    return max(0.0, x)
+
+
 def select_activation(name: str):
     if name == "tanh":
         return math.tanh
@@ -29,5 +33,6 @@ def select_activation(name: str):
         return softplus
     if name == "silu":
         return silu
+    if name == "relu":
+        return relu
     raise ValueError(f"Unknown or unsupported activation: {name}")
-

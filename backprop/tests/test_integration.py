@@ -20,6 +20,8 @@ def test_tiny_cli_run_creates_artifacts(tmp_path):
             "24",
             "--backprop-steps",
             "2",
+            "--hidden-activation",
+            "relu",
             "--outputs",
             str(tmp_path),
         ]
@@ -34,6 +36,7 @@ def test_tiny_cli_run_creates_artifacts(tmp_path):
     assert (out_dir / "summary.txt").exists()
     assert (out_dir / "decision_boundary.png").exists()
     assert (out_dir / "topology.png").exists()
+    assert "hidden_activation: relu" in (out_dir / "summary.txt").read_text(encoding="utf-8")
     with open(out_dir / "best_genome.pkl", "rb") as f:
         genome = pickle.load(f)
     assert genome.forward([0.0, 1.0])

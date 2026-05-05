@@ -45,10 +45,6 @@ slimevolley/selfplay/viz/slimevolley_gpu_selfplay/
 xor/output/output_*/
 
 # Optional saved binary artifacts
-*.pkl
-*.gif
-*.svg
-*.npz
 __pycache__/
 *.py[cod]
 

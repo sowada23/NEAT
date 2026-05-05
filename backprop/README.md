@@ -21,7 +21,7 @@ python -m pip install -e ".[test]"
 From the parent repo root, `/Users/sora/NEATJAX`, run:
 
 ```bash
-python backprop/run_toy2d.py --dataset xor --generations 20 --population 40 --seed 7
+python backprop/run_toy2d.py --dataset xor --generations 20 --population 40 --seed 7 --hidden-activation relu
 ```
 
 Or install the standalone package and use its console script:
@@ -29,7 +29,7 @@ Or install the standalone package and use its console script:
 ```bash
 cd /Users/sora/NEATJAX/backprop
 python -m pip install -e ".[test]"
-backprop-neat-toy2d --dataset xor --generations 20 --population 40 --seed 7
+backprop-neat-toy2d --dataset xor --generations 20 --population 40 --seed 7 --hidden-activation relu
 ```
 
 Artifacts are written under `backprop/outputs/output_N/` when using the
@@ -48,5 +48,5 @@ genome is converted to a fixed-topology JAX representation, its weights and
 biases are trained with binary cross-entropy, then the trained parameters are
 copied back to the genome before reproduction.
 
-Only smooth differentiable activations are used in Backprop-NEAT runs:
-`tanh`, `sigmoid`, `softplus`, and `silu`.
+Backprop-NEAT hidden nodes can use `tanh`, `sigmoid`, `softplus`, `silu`,
+and `relu`. Binary classification output nodes use `sigmoid`.

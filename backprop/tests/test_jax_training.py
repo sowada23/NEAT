@@ -6,7 +6,7 @@ import pytest
 jax = pytest.importorskip("jax")
 
 from backprop_neat import BackpropNEATConfig, Population
-from backprop_neat.config import SMOOTH_ACTIVATIONS
+from backprop_neat.config import SUPPORTED_ACTIVATIONS
 from backprop_neat.datasets import generate_dataset
 from backprop_neat.jax.training import (
     TrainState,
@@ -19,14 +19,34 @@ from backprop_neat.jax.training import (
 )
 
 
-def test_smooth_activation_validation_rejects_relu():
+def test_activation_validation_accepts_relu():
+    config = BackpropNEATConfig(allowed_activations=SUPPORTED_ACTIVATIONS, hidden_activation="relu")
+    assert "relu" in config.allowed_activations
+
+
+def test_activation_validation_rejects_unknown_activation():
     with pytest.raises(ValueError):
-        BackpropNEATConfig(allowed_activations=SMOOTH_ACTIVATIONS + ("relu",))
+        BackpropNEATConfig(allowed_activations=SUPPORTED_ACTIVATIONS + ("unknown",))
 
 
 def test_jax_forward_matches_python_forward_before_training():
     pop = Population(BackpropNEATConfig(population_size=2, genome_shape=(2, 1)))
     genome = pop.members[0]
+    x = np.asarray([[0.2, -0.4], [1.0, 1.0]], dtype=np.float32)
+    jax_genome = genome_to_jax(genome)
+    state = TrainState(jax_genome.initial_weights, jax_genome.initial_biases)
+    actual = np.asarray(batched_forward_state(jax_genome, state, x))
+    expected = np.asarray([genome.forward(row) for row in x], dtype=np.float32)
+    np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-6)
+
+
+def test_jax_forward_matches_python_forward_with_relu_hidden_node():
+    pop = Population(BackpropNEATConfig(population_size=2, genome_shape=(2, 1), hidden_activation="relu"))
+    genome = pop.members[0]
+    genome.add_node(next(iter(genome.connections)))
+    for node in genome.nodes.values():
+        if node.kind == "hidden":
+            node.activation = "relu"
     x = np.asarray([[0.2, -0.4], [1.0, 1.0]], dtype=np.float32)
     jax_genome = genome_to_jax(genome)
     state = TrainState(jax_genome.initial_weights, jax_genome.initial_biases)
@@ -102,4 +122,3 @@ def test_complexity_penalty_lowers_fitness():
         seed=1,
     )
     assert large_metrics["complexity_penalty"] > small_metrics["complexity_penalty"]
-

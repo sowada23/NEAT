@@ -19,6 +19,7 @@ ACT_TANH = 1
 ACT_SIGMOID = 2
 ACT_SOFTPLUS = 3
 ACT_SILU = 4
+ACT_RELU = 5
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,8 @@ def _activation_code(name: str | None) -> int:
         return ACT_SOFTPLUS
     if name == "silu":
         return ACT_SILU
+    if name == "relu":
+        return ACT_RELU
     raise ValueError(f"Unsupported activation for Backprop-NEAT JAX training: {name}")
 
 
@@ -65,6 +68,7 @@ def _apply_activation(x, code):
             jax.nn.sigmoid,
             jax.nn.softplus,
             jax.nn.silu,
+            jax.nn.relu,
         ),
         x,
     )

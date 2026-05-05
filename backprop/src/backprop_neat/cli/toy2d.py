@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
-from backprop_neat.config import BackpropNEATConfig
+from backprop_neat.config import SUPPORTED_ACTIVATIONS, BackpropNEATConfig
 from backprop_neat.datasets import generate_split
 from backprop_neat.evolution.population import Population
 from backprop_neat.jax import evaluate_and_train_genome
@@ -113,6 +113,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--backprop-steps", type=int, default=80)
     parser.add_argument("--learning-rate", type=float, default=0.03)
     parser.add_argument("--batch-size", type=int, default=0)
+    parser.add_argument("--hidden-activation", choices=SUPPORTED_ACTIVATIONS, default="tanh")
     parser.add_argument("--conn-penalty", type=float, default=0.01)
     parser.add_argument("--node-penalty", type=float, default=0.03)
     parser.add_argument("--outputs", type=Path, default=Path("outputs"))
@@ -128,6 +129,7 @@ def main(argv: list[str] | None = None) -> None:
         genome_shape=(2, 1),
         backprop_steps=args.backprop_steps,
         learning_rate=args.learning_rate,
+        hidden_activation=args.hidden_activation,
         batch_size=None if args.batch_size <= 0 else args.batch_size,
         complexity_conn_penalty=args.conn_penalty,
         complexity_node_penalty=args.node_penalty,
@@ -143,7 +145,7 @@ def main(argv: list[str] | None = None) -> None:
     print(
         f"Training dataset={args.dataset} generations={args.generations} population={args.population} "
         f"backprop_steps={args.backprop_steps} lr={args.learning_rate} "
-        f"conn_penalty={args.conn_penalty} node_penalty={args.node_penalty}",
+        f"hidden_activation={args.hidden_activation} conn_penalty={args.conn_penalty} node_penalty={args.node_penalty}",
         flush=True,
     )
 
@@ -173,6 +175,7 @@ def main(argv: list[str] | None = None) -> None:
     history_svgs = save_all_history_svgs(history, out_dir)
     with open(out_dir / "summary.txt", "w", encoding="utf-8") as f:
         f.write(f"dataset: {args.dataset}\n")
+        f.write(f"hidden_activation: {args.hidden_activation}\n")
         f.write(f"best_generation: {best_generation}\n")
         for key, value in sorted(best_ever.metrics.items()):
             f.write(f"{key}: {value}\n")

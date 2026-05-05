@@ -4,13 +4,14 @@ from dataclasses import dataclass, field
 
 
 SMOOTH_ACTIVATIONS = ("tanh", "sigmoid", "softplus", "silu")
+SUPPORTED_ACTIVATIONS = SMOOTH_ACTIVATIONS + ("relu",)
 
 
 @dataclass
 class BackpropNEATConfig:
     population_size: int = 100
     genome_shape: tuple[int, int] = (2, 1)
-    allowed_activations: tuple[str, ...] = SMOOTH_ACTIVATIONS
+    allowed_activations: tuple[str, ...] = SUPPORTED_ACTIVATIONS
     hidden_activation: str = "tanh"
     output_activation: str = "sigmoid"
     min_weight: float = -1.0
@@ -44,13 +45,12 @@ class BackpropNEATConfig:
     metadata: dict[str, object] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        invalid = [name for name in self.allowed_activations if name not in SMOOTH_ACTIVATIONS]
+        invalid = [name for name in self.allowed_activations if name not in SUPPORTED_ACTIVATIONS]
         if invalid:
-            raise ValueError(f"Unsupported smooth activations: {invalid}")
+            raise ValueError(f"Unsupported activations: {invalid}")
         if self.hidden_activation not in self.allowed_activations:
             raise ValueError("hidden_activation must be present in allowed_activations")
         if self.output_activation != "sigmoid":
             raise ValueError("Backprop-NEAT binary classification expects sigmoid output activation")
         if self.genome_shape[1] != 1:
             raise ValueError("Toy 2D binary classification expects exactly one output node")
-
