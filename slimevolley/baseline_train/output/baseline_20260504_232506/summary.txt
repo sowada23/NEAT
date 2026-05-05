@@ -1,0 +1,19 @@
+Stage 2 baseline training complete.
+best_ever_score: -4.690000
+final_score: -4.920000 +/- 0.271293
+best_genome: /Users/sora/NEATJAX/slimevolley/baseline_train/output/baseline_20260504_232506/best_genome.pkl
+final_genome: /Users/sora/NEATJAX/slimevolley/baseline_train/output/baseline_20260504_232506/final_genome.pkl
+best_topology: /Users/sora/NEATJAX/slimevolley/baseline_train/output/baseline_20260504_232506/best_topology.svg
+final_topology: /Users/sora/NEATJAX/slimevolley/baseline_train/output/baseline_20260504_232506/final_topology.svg
+best_ever_metrics:
+{
+  "conn_count": 40,
+  "enabled_conn_count": 38,
+  "fitness": 1.309999942779541,
+  "left_life_mean": 4.690000057220459,
+  "node_count": 16,
+  "right_life_mean": 0.0,
+  "score_mean": -4.690000057220459,
+  "score_std": 0.5778408050537109,
+  "steps_mean": 658.5700073242188
+}

@@ -1,0 +1,2 @@
+generation,best_fitness,mean_fitness,best_baseline_score,best_baseline_std,mean_baseline_score,mean_episode_length,best_node_count,best_connection_count,best_enabled_connection_count,species_count
+0,6.0,6.0,0.0,0.0,0.0,10.0,15,36,36,1

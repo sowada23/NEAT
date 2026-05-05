@@ -1,0 +1,46 @@
+{
+  "args": {
+    "benchmark_episodes": 1,
+    "checkpoint_freq": 1,
+    "complexity_penalty_weight": 0.0,
+    "episodes_per_genome": 1,
+    "generations": 0,
+    "max_steps": 10,
+    "out_dir": "slimevolley/baseline_train/output",
+    "population": 2,
+    "seed": 42,
+    "survival_bonus_weight": 0.0,
+    "threshold": 0.0
+  },
+  "neat_config": {
+    "adaptive_threshold": 0.1,
+    "add_conn_mutation_prob": 0.03,
+    "add_node_mutation_prob": 0.01,
+    "c1": 1.0,
+    "c2": 1.0,
+    "c3": 0.8,
+    "genome_shape": [
+      12,
+      3
+    ],
+    "hid_node_activation": "tanh",
+    "max_bias": 3.0,
+    "max_species_threshold": 15.0,
+    "max_weight": 3.0,
+    "min_bias": -3.0,
+    "min_species_threshold": 0.15,
+    "min_weight": -3.0,
+    "num_elites": 2,
+    "out_node_activation": "tanh",
+    "perturb_prob": 0.9,
+    "population_size": 2,
+    "remove_conn_mutation_prob": 0.01,
+    "remove_node_mutation_prob": 0.0,
+    "reset_prob": 0.05,
+    "save_path": "/Users/sora/NEATJAX/slimevolley/baseline_train/output/baseline_20260504_231908/",
+    "selection_share": 0.25,
+    "sigma": 0.12,
+    "species_threshold": 1.0,
+    "target_species_number": 8
+  }
+}
