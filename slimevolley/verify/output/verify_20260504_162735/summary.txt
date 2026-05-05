@@ -1,0 +1,24 @@
+matchup: noop_vs_baseline
+episodes: 3
+passed: True
+
+gym:
+{
+  "count": 3,
+  "score_mean": -5.0,
+  "score_std": 0.0,
+  "steps_mean": 602.6666870117188,
+  "steps_std": 95.07306671142578
+}
+
+jax:
+{
+  "count": 3,
+  "score_mean": -5.0,
+  "score_std": 0.0,
+  "steps_mean": 536.3333129882812,
+  "steps_std": 101.49658203125
+}
+
+mismatch report:
+No aggregate mismatch above configured tolerances.

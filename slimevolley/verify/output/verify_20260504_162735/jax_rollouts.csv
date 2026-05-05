@@ -1,0 +1,4 @@
+backend,matchup,seed,score,steps,right_life,left_life
+jax,noop_vs_baseline,42,-5.0,673,0,5
+jax,noop_vs_baseline,43,-5.0,506,0,5
+jax,noop_vs_baseline,44,-5.0,430,0,5

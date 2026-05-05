@@ -1,0 +1,4 @@
+backend,matchup,seed,score,steps,right_life,left_life
+gym,noop_vs_baseline,42,-5.0,736,0,5
+gym,noop_vs_baseline,43,-5.0,521,0,5
+gym,noop_vs_baseline,44,-5.0,551,0,5

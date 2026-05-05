@@ -1,0 +1,24 @@
+matchup: baseline_vs_baseline
+episodes: 100
+passed: True
+
+gym:
+{
+  "count": 100,
+  "score_mean": 0.0,
+  "score_std": 1.0770329236984253,
+  "steps_mean": 3000.0,
+  "steps_std": 0.0
+}
+
+jax:
+{
+  "count": 100,
+  "score_mean": 0.009999999776482582,
+  "score_std": 0.92190021276474,
+  "steps_mean": 3000.0,
+  "steps_std": 0.0
+}
+
+mismatch report:
+No aggregate mismatch above configured tolerances.

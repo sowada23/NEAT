@@ -1,0 +1,24 @@
+matchup: genome_vs_baseline
+episodes: 100
+passed: True
+
+gym:
+{
+  "count": 100,
+  "score_mean": -4.769999980926514,
+  "score_std": 0.48692914843559265,
+  "steps_mean": 622.2000122070312,
+  "steps_std": 143.13433837890625
+}
+
+jax:
+{
+  "count": 100,
+  "score_mean": -4.820000171661377,
+  "score_std": 0.40938979387283325,
+  "steps_mean": 599.1300048828125,
+  "steps_std": 124.45341491699219
+}
+
+mismatch report:
+No aggregate mismatch above configured tolerances.
