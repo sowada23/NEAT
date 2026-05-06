@@ -6,6 +6,7 @@ import pickle
 import random
 from pathlib import Path
 
+import imageio.v2 as imageio
 import numpy as np
 
 from backprop_neat.config import SUPPORTED_ACTIVATIONS, BackpropNEATConfig
@@ -101,6 +102,30 @@ def _save_history_csv(history: list[dict[str, float]], out_path: Path) -> Path:
     return out_path
 
 
+def _save_generation_topology(genome, topology_dir: Path, generation: int, dataset: str) -> Path:
+    return save_topology(
+        genome,
+        topology_dir / f"topology_generation_{generation + 1}.png",
+        title=f"{dataset} topology generation {generation}",
+    )
+
+
+def _save_generation_decision_boundary(genome, split, boundary_dir: Path, generation: int, dataset: str) -> Path:
+    return save_decision_boundary(
+        genome,
+        split.test_x,
+        split.test_y,
+        boundary_dir / f"decision_boundary_generation_{generation + 1}.png",
+        title=f"{dataset} decision boundary generation {generation}",
+    )
+
+
+def _save_gif(frame_paths: list[Path], out_path: Path, *, duration: float = 0.75) -> Path:
+    frames = [imageio.imread(path) for path in frame_paths]
+    imageio.mimsave(out_path, frames, duration=duration)
+    return out_path
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Run Backprop-NEAT on a toy 2D classification dataset.")
     parser.add_argument("--dataset", choices=["circle", "xor", "gaussian", "spiral"], default="xor")
@@ -124,6 +149,10 @@ def main(argv: list[str] | None = None) -> None:
     np.random.seed(args.seed)
     split = generate_split(args.dataset, args.train_size, args.test_size, args.noise, args.seed)
     out_dir = _next_output_dir(args.outputs)
+    topology_dir = out_dir / "topology"
+    boundary_dir = out_dir / "decision_boundary"
+    topology_dir.mkdir()
+    boundary_dir.mkdir()
     config = BackpropNEATConfig(
         population_size=args.population,
         genome_shape=(2, 1),
@@ -141,6 +170,8 @@ def main(argv: list[str] | None = None) -> None:
     best_ever = None
     best_score = (-1.0, -1.0)
     best_generation = 0
+    topology_frames = []
+    boundary_frames = []
     print(f"Output dir: {out_dir.resolve()}")
     print(
         f"Training dataset={args.dataset} generations={args.generations} population={args.population} "
@@ -158,6 +189,8 @@ def main(argv: list[str] | None = None) -> None:
             best_ever = best.copy()
             best_generation = generation
         history.append({"generation": float(generation), **summary})
+        topology_frames.append(_save_generation_topology(best, topology_dir, generation, args.dataset))
+        boundary_frames.append(_save_generation_decision_boundary(best, split, boundary_dir, generation, args.dataset))
         _print_generation(generation, args.generations, summary)
         if summary["best_test_accuracy"] >= args.stop_accuracy:
             break
@@ -173,6 +206,8 @@ def main(argv: list[str] | None = None) -> None:
     np.savez(out_dir / "history.npz", **{key: np.asarray([row[key] for row in history]) for key in keys})
     _save_history_csv(history, out_dir / "history.csv")
     history_svgs = save_all_history_svgs(history, out_dir)
+    topology_gif = _save_gif(topology_frames, out_dir / "topology.gif")
+    boundary_gif = _save_gif(boundary_frames, out_dir / "decision_boundary.gif")
     with open(out_dir / "summary.txt", "w", encoding="utf-8") as f:
         f.write(f"dataset: {args.dataset}\n")
         f.write(f"hidden_activation: {args.hidden_activation}\n")
@@ -191,6 +226,8 @@ def main(argv: list[str] | None = None) -> None:
     print(f"Fitness SVG: {history_svgs['fitness']}")
     print(f"Loss SVG: {history_svgs['loss']}")
     print(f"Accuracy SVG: {history_svgs['accuracy']}")
+    print(f"Topology GIF: {topology_gif}")
+    print(f"Decision boundary GIF: {boundary_gif}")
     print(f"Output dir: {out_dir.resolve()}")
 
 

@@ -39,7 +39,11 @@ root-friendly launcher:
 - `history.npz`
 - `summary.txt`
 - `decision_boundary.png`
+- `decision_boundary.gif`
+- `decision_boundary/decision_boundary_generation_N.png`
 - `topology.png`
+- `topology.gif`
+- `topology/topology_generation_N.png`
 
 ## Design
 
