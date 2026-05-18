@@ -1,0 +1,2 @@
+generation,best_fitness,mean_fitness,best_baseline_score,best_baseline_std,mean_baseline_score,mean_episode_length,best_node_count,best_connection_count,best_enabled_connection_count,best_noop_rate,best_forward_rate,best_backward_rate,best_jump_rate,best_forward_jump_rate,best_backward_jump_rate,best_raw_conflict_rate,best_resolved_conflict_rate,species_count
+0,6.0,6.0,0.0,0.0,0.0,5.0,15,36,36,0.0,0.0,1.0,0.0,0.0,0.0,1.0,0.0,1

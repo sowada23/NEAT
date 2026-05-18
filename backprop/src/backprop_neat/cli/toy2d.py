@@ -141,6 +141,14 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--hidden-activation", choices=SUPPORTED_ACTIVATIONS, default="tanh")
     parser.add_argument("--conn-penalty", type=float, default=0.01)
     parser.add_argument("--node-penalty", type=float, default=0.03)
+    parser.add_argument("--add-node-prob", type=float, default=0.05)
+    parser.add_argument("--add-conn-prob", type=float, default=0.10)
+    parser.add_argument("--remove-conn-prob", type=float, default=0.02)
+    parser.add_argument("--remove-node-prob", type=float, default=0.01)
+    parser.add_argument("--weight-mutation-prob", type=float, default=0.20)
+    parser.add_argument("--bias-mutation-prob", type=float, default=0.20)
+    parser.add_argument("--activation-mutation-prob", type=float, default=0.03)
+    parser.add_argument("--mutation-sigma", type=float, default=0.10)
     parser.add_argument("--outputs", type=Path, default=Path("outputs"))
     parser.add_argument("--stop-accuracy", type=float, default=1.01)
     args = parser.parse_args(argv)
@@ -162,6 +170,14 @@ def main(argv: list[str] | None = None) -> None:
         batch_size=None if args.batch_size <= 0 else args.batch_size,
         complexity_conn_penalty=args.conn_penalty,
         complexity_node_penalty=args.node_penalty,
+        add_node_mutation_prob=args.add_node_prob,
+        add_conn_mutation_prob=args.add_conn_prob,
+        remove_conn_mutation_prob=args.remove_conn_prob,
+        remove_node_mutation_prob=args.remove_node_prob,
+        weight_mutation_prob=args.weight_mutation_prob,
+        bias_mutation_prob=args.bias_mutation_prob,
+        activation_mutation_prob=args.activation_mutation_prob,
+        mutation_sigma=args.mutation_sigma,
         rng_seed=args.seed,
         save_path=str(out_dir),
     )
@@ -176,7 +192,11 @@ def main(argv: list[str] | None = None) -> None:
     print(
         f"Training dataset={args.dataset} generations={args.generations} population={args.population} "
         f"backprop_steps={args.backprop_steps} lr={args.learning_rate} "
-        f"hidden_activation={args.hidden_activation} conn_penalty={args.conn_penalty} node_penalty={args.node_penalty}",
+        f"hidden_activation={args.hidden_activation} conn_penalty={args.conn_penalty} node_penalty={args.node_penalty} "
+        f"add_node_prob={args.add_node_prob} add_conn_prob={args.add_conn_prob} "
+        f"remove_conn_prob={args.remove_conn_prob} remove_node_prob={args.remove_node_prob} "
+        f"weight_mutation_prob={args.weight_mutation_prob} bias_mutation_prob={args.bias_mutation_prob} "
+        f"activation_mutation_prob={args.activation_mutation_prob} mutation_sigma={args.mutation_sigma}",
         flush=True,
     )
 

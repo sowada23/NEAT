@@ -24,9 +24,15 @@ def relu(x: float) -> float:
     return max(0.0, x)
 
 
+def square(x: float) -> float:
+    return x * x
+
+
 def select_activation(name: str):
     if name == "tanh":
         return math.tanh
+    if name == "sine":
+        return math.sin
     if name == "sigmoid":
         return sigmoid
     if name == "softplus":
@@ -35,4 +41,8 @@ def select_activation(name: str):
         return silu
     if name == "relu":
         return relu
+    if name == "square":
+        return square
+    if name == "abs":
+        return abs
     raise ValueError(f"Unknown or unsupported activation: {name}")

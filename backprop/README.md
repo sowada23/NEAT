@@ -24,6 +24,13 @@ From the parent repo root, `/Users/sora/NEATJAX`, run:
 python backprop/run_toy2d.py --dataset xor --generations 20 --population 40 --seed 7 --hidden-activation relu
 ```
 
+For the harder spiral dataset, give evolution more chances to add topology and
+reduce complexity penalties so useful extra structure is not discarded too early:
+
+```bash
+python backprop/run_toy2d.py --dataset spiral --generations 120 --population 200 --seed 7 --hidden-activation tanh --backprop-steps 200 --add-conn-prob 0.35 --add-node-prob 0.18 --remove-conn-prob 0.005 --remove-node-prob 0.0 --weight-mutation-prob 0.35 --bias-mutation-prob 0.35 --mutation-sigma 0.2 --conn-penalty 0.001 --node-penalty 0.003
+```
+
 Or install the standalone package and use its console script:
 
 ```bash

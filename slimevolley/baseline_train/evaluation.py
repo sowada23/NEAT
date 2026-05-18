@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from slimevolley.baseline_train.episodes import run_vs_baseline_episode
+from slimevolley.baseline_train.episodes import ACTION_COUNT_KEYS, run_vs_baseline_episode
 
 
 @dataclass(frozen=True)
@@ -18,6 +18,14 @@ class GenomeMetrics:
     node_count: int
     conn_count: int
     enabled_conn_count: int
+    noop_rate: float
+    forward_rate: float
+    backward_rate: float
+    jump_rate: float
+    forward_jump_rate: float
+    backward_jump_rate: float
+    raw_conflict_rate: float
+    resolved_conflict_rate: float
 
 
 def genome_complexity(genome) -> tuple[int, int, int]:
@@ -35,6 +43,7 @@ def evaluate_genome_vs_baseline(
     max_steps: int = 3000,
     survival_bonus_weight: float = 0.0,
     complexity_penalty_weight: float = 0.0,
+    resolve_conflict: bool = True,
 ) -> GenomeMetrics:
     results = [
         run_vs_baseline_episode(
@@ -42,6 +51,7 @@ def evaluate_genome_vs_baseline(
             seed=seed_base + episode_idx,
             threshold=threshold,
             max_steps=max_steps,
+            resolve_conflict=resolve_conflict,
         )
         for episode_idx in range(episodes)
     ]
@@ -58,6 +68,12 @@ def evaluate_genome_vs_baseline(
     complexity_penalty = complexity_penalty_weight * float(node_count + enabled_conn_count)
     raw_fitness = score_mean + survival_bonus - complexity_penalty
     fitness = raw_fitness + 6.0
+    total_actions = int(sum(sum(r.action_counts.values()) for r in results))
+    action_totals = {key: int(sum(r.action_counts.get(key, 0) for r in results)) for key in ACTION_COUNT_KEYS}
+    raw_action_totals = {key: int(sum(r.raw_action_counts.get(key, 0) for r in results)) for key in ACTION_COUNT_KEYS}
+
+    def rate(key: str, totals: dict[str, int] = action_totals) -> float:
+        return float(totals.get(key, 0) / max(1, total_actions))
 
     return GenomeMetrics(
         fitness=float(fitness),
@@ -69,6 +85,14 @@ def evaluate_genome_vs_baseline(
         node_count=node_count,
         conn_count=conn_count,
         enabled_conn_count=enabled_conn_count,
+        noop_rate=rate("noop"),
+        forward_rate=rate("forward"),
+        backward_rate=rate("backward"),
+        jump_rate=rate("jump"),
+        forward_jump_rate=rate("forward_jump"),
+        backward_jump_rate=rate("backward_jump"),
+        raw_conflict_rate=rate("conflict", raw_action_totals) + rate("conflict_jump", raw_action_totals),
+        resolved_conflict_rate=rate("conflict") + rate("conflict_jump"),
     )
 
 
@@ -80,6 +104,7 @@ def evaluate_population_vs_baseline(
     max_steps: int = 3000,
     survival_bonus_weight: float = 0.0,
     complexity_penalty_weight: float = 0.0,
+    resolve_conflict: bool = True,
 ) -> list[GenomeMetrics]:
     metrics = []
     for genome_idx, genome in enumerate(population.members):
@@ -91,8 +116,8 @@ def evaluate_population_vs_baseline(
             max_steps=max_steps,
             survival_bonus_weight=survival_bonus_weight,
             complexity_penalty_weight=complexity_penalty_weight,
+            resolve_conflict=resolve_conflict,
         )
         genome.fitness = genome_metrics.fitness
         metrics.append(genome_metrics)
     return metrics
-

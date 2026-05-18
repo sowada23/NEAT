@@ -20,6 +20,9 @@ ACT_SIGMOID = 2
 ACT_SOFTPLUS = 3
 ACT_SILU = 4
 ACT_RELU = 5
+ACT_SINE = 6
+ACT_SQUARE = 7
+ACT_ABS = 8
 
 
 @dataclass(frozen=True)
@@ -56,6 +59,12 @@ def _activation_code(name: str | None) -> int:
         return ACT_SILU
     if name == "relu":
         return ACT_RELU
+    if name == "sine":
+        return ACT_SINE
+    if name == "square":
+        return ACT_SQUARE
+    if name == "abs":
+        return ACT_ABS
     raise ValueError(f"Unsupported activation for Backprop-NEAT JAX training: {name}")
 
 
@@ -69,6 +78,9 @@ def _apply_activation(x, code):
             jax.nn.softplus,
             jax.nn.silu,
             jax.nn.relu,
+            jnp.sin,
+            jnp.square,
+            jnp.abs,
         ),
         x,
     )

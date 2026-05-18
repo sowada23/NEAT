@@ -19,9 +19,10 @@ from backprop_neat.jax.training import (
 )
 
 
-def test_activation_validation_accepts_relu():
-    config = BackpropNEATConfig(allowed_activations=SUPPORTED_ACTIVATIONS, hidden_activation="relu")
-    assert "relu" in config.allowed_activations
+@pytest.mark.parametrize("activation", ("relu", "sine", "square", "abs"))
+def test_activation_validation_accepts_training_activation(activation):
+    config = BackpropNEATConfig(allowed_activations=SUPPORTED_ACTIVATIONS, hidden_activation=activation)
+    assert activation in config.allowed_activations
 
 
 def test_activation_validation_rejects_unknown_activation():
@@ -40,13 +41,14 @@ def test_jax_forward_matches_python_forward_before_training():
     np.testing.assert_allclose(actual, expected, rtol=1e-6, atol=1e-6)
 
 
-def test_jax_forward_matches_python_forward_with_relu_hidden_node():
-    pop = Population(BackpropNEATConfig(population_size=2, genome_shape=(2, 1), hidden_activation="relu"))
+@pytest.mark.parametrize("activation", ("relu", "sine", "square", "abs"))
+def test_jax_forward_matches_python_forward_with_extra_hidden_activation(activation):
+    pop = Population(BackpropNEATConfig(population_size=2, genome_shape=(2, 1), hidden_activation=activation))
     genome = pop.members[0]
     genome.add_node(next(iter(genome.connections)))
     for node in genome.nodes.values():
         if node.kind == "hidden":
-            node.activation = "relu"
+            node.activation = activation
     x = np.asarray([[0.2, -0.4], [1.0, 1.0]], dtype=np.float32)
     jax_genome = genome_to_jax(genome)
     state = TrainState(jax_genome.initial_weights, jax_genome.initial_biases)

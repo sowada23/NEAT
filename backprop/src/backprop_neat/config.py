@@ -3,13 +3,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 
-SMOOTH_ACTIVATIONS = ("tanh", "sigmoid", "softplus", "silu")
-SUPPORTED_ACTIVATIONS = SMOOTH_ACTIVATIONS + ("relu",)
+SMOOTH_ACTIVATIONS = ("tanh", "sigmoid", "softplus", "silu", "sine")
+SUPPORTED_ACTIVATIONS = SMOOTH_ACTIVATIONS + ("relu", "square", "abs")
 
 
 @dataclass
 class BackpropNEATConfig:
-    population_size: int = 100
+    population_size: int = 50
     genome_shape: tuple[int, int] = (2, 1)
     allowed_activations: tuple[str, ...] = SUPPORTED_ACTIVATIONS
     hidden_activation: str = "tanh"
@@ -34,9 +34,9 @@ class BackpropNEATConfig:
     c1: float = 1.0
     c2: float = 1.0
     c3: float = 0.4
-    backprop_steps: int = 150
+    backprop_steps: int = 20
     learning_rate: float = 0.03
-    batch_size: int = 512
+    batch_size: int = 64
     weight_decay: float = 1e-4
     complexity_conn_penalty: float = 0.001
     complexity_node_penalty: float = 0.001

@@ -58,6 +58,7 @@ def parse_args():
     parser.add_argument("--benchmark-episodes", type=int, default=100)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--threshold", type=float, default=0.0)
+    parser.add_argument("--no-resolve-conflicts", action="store_true")
     parser.add_argument("--max-steps", type=int, default=3000)
     parser.add_argument("--survival-bonus-weight", type=float, default=0.0)
     parser.add_argument("--complexity-penalty-weight", type=float, default=0.0)
@@ -127,7 +128,7 @@ def main():
 
     history_header = (
         " gen | best_fit | mean_fit | bench_mean | bench_std | best_ever | "
-        "mean_score | mean_len | nodes | enabled | species"
+        "mean_score | mean_len | noop | jump | f+j | b+j | raw_conf | nodes | enabled | species"
     )
     history_rule = "-" * len(history_header)
 
@@ -148,6 +149,7 @@ def main():
             max_steps=args.max_steps,
             survival_bonus_weight=args.survival_bonus_weight,
             complexity_penalty_weight=args.complexity_penalty_weight,
+            resolve_conflict=not args.no_resolve_conflicts,
         )
         best = population.get_top_genome()
         best_idx = max(range(len(population.members)), key=lambda idx: population.members[idx].fitness)
@@ -161,6 +163,7 @@ def main():
             max_steps=args.max_steps,
             survival_bonus_weight=args.survival_bonus_weight,
             complexity_penalty_weight=args.complexity_penalty_weight,
+            resolve_conflict=not args.no_resolve_conflicts,
         )
 
         if benchmark_metrics.score_mean > best_ever_score:
@@ -187,6 +190,14 @@ def main():
             "best_node_count": best_metrics.node_count,
             "best_connection_count": best_metrics.conn_count,
             "best_enabled_connection_count": best_metrics.enabled_conn_count,
+            "best_noop_rate": best_metrics.noop_rate,
+            "best_forward_rate": best_metrics.forward_rate,
+            "best_backward_rate": best_metrics.backward_rate,
+            "best_jump_rate": best_metrics.jump_rate,
+            "best_forward_jump_rate": best_metrics.forward_jump_rate,
+            "best_backward_jump_rate": best_metrics.backward_jump_rate,
+            "best_raw_conflict_rate": best_metrics.raw_conflict_rate,
+            "best_resolved_conflict_rate": best_metrics.resolved_conflict_rate,
             "species_count": len(population.species),
         }
         _append_history(history_path, row)
@@ -206,6 +217,11 @@ def main():
                 f"{best_ever_score:9.3f} | "
                 f"{summary['mean_score']:10.3f} | "
                 f"{summary['mean_steps']:8.1f} | "
+                f"{best_metrics.noop_rate:4.2f} | "
+                f"{best_metrics.jump_rate:4.2f} | "
+                f"{best_metrics.forward_jump_rate:3.2f} | "
+                f"{best_metrics.backward_jump_rate:3.2f} | "
+                f"{best_metrics.raw_conflict_rate:8.2f} | "
                 f"{best_metrics.node_count:5d} | "
                 f"{best_metrics.enabled_conn_count:7d} | "
                 f"{len(population.species):7d}",
@@ -225,6 +241,7 @@ def main():
         max_steps=args.max_steps,
         survival_bonus_weight=args.survival_bonus_weight,
         complexity_penalty_weight=args.complexity_penalty_weight,
+        resolve_conflict=not args.no_resolve_conflicts,
     )
     save_topology_svg(
         final_best,
